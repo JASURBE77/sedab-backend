@@ -8,7 +8,7 @@ const upload = require("../middleware/upload");
 
 router.post("/", auth, role("admin"), upload.single("image"), foodController.createFood);
 
-router.get("/", auth, foodController.getFoods);
+router.get("/", foodController.getFoods);
 
 router.put("/:id", auth, role("admin"), upload.single("image"), foodController.updateFood);
 

@@ -30,7 +30,7 @@ button {
 
 .primary { background: #22c55e; color: white; }
 
-input {
+input, select {
     padding: 10px;
     margin: 5px;
     border-radius: 6px;
@@ -59,7 +59,7 @@ img {
 
 <div class="container">
 
-<!-- 🟢 FIRST ADMIN SETUP -->
+<!-- ADMIN SETUP -->
 <div id="setupBox">
     <h2>🟢 First Admin Setup</h2>
 
@@ -87,9 +87,6 @@ img {
 <div id="cashierBox" style="display:none;">
     <h2>🍔 Cashier</h2>
 
-    <div id="foods" class="grid"></div>
-
-    <h3>Categories</h3>
     <div id="categoriesEl" class="grid"></div>
 
     <h3>🛒 Cart</h3>
@@ -98,7 +95,7 @@ img {
 
     <button class="primary" onclick="sendOrder()">Send Order</button>
 
-    <h3>Order Status</h3>
+    <h3>Orders</h3>
     <div id="cashierOrders"></div>
 </div>
 
@@ -113,19 +110,18 @@ img {
     <h2>👑 Admin</h2>
 
     <button onclick="loadStats()">Refresh Stats</button>
-
     <pre id="stats"></pre>
 
     <h3>Create Category</h3>
     <input id="catName" placeholder="Category Name">
-    <button onclick="createCategory()">Create Category</button>
+    <button onclick="createCategory()">Create</button>
 
     <h3>Create Food</h3>
     <input id="foodName" placeholder="Food Name">
     <input id="foodPrice" type="number" placeholder="Price">
     <select id="foodCategory"></select>
     <input id="foodImage" type="file">
-    <button onclick="createFood()">Create Food</button>
+    <button onclick="createFood()">Create</button>
 
     <h3>Create Chef</h3>
     <input id="chefName" placeholder="Name">
@@ -137,7 +133,7 @@ img {
     <input id="chefPass" type="password" placeholder="Password">
     <button onclick="createChef()">Create Chef</button>
 
-    <h3>Staff Information</h3>
+    <h3>Staff</h3>
     <button onclick="loadStaff()">Load Staff</button>
     <div id="staffInfo"></div>
 
@@ -150,36 +146,29 @@ img {
 
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script>
-const API = "http://localhost:6000/api";
-const socket = io("http://localhost:6000", {
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    reconnectionAttempts: 5
-});
+
+const API = "https://sedab-backend.onrender.com/api";
+
+// 🔥 FIXED SOCKET (production)
+const socket = io("https://sedab-backend.onrender.com");
 
 const setupBox = document.getElementById("setupBox");
 const loginBox = document.getElementById("loginBox");
 const cashierBox = document.getElementById("cashierBox");
 const chefBox = document.getElementById("chefBox");
 const adminBox = document.getElementById("adminBox");
-const foodsEl = document.getElementById("foods");
-const cartBox = document.getElementById("cart");
-const ordersEl = document.getElementById("orders");
-const statsEl = document.getElementById("stats");
-const cashierOrdersEl = document.getElementById("cashierOrders");
+
+const categoriesEl = document.getElementById("categoriesEl");
+const cartEl = document.getElementById("cart");
+const totalPriceLabel = document.getElementById("totalPriceLabel");
+
 const foodCategory = document.getElementById("foodCategory");
+
 const catName = document.getElementById("catName");
 const foodName = document.getElementById("foodName");
 const foodPrice = document.getElementById("foodPrice");
 const foodImage = document.getElementById("foodImage");
-const cashName = document.getElementById("cashName");
-const cashSurname = document.getElementById("cashSurname");
-const cashPhone = document.getElementById("cashPhone");
-const cashAge = document.getElementById("cashAge");
-const cashSalary = document.getElementById("cashSalary");
-const cashLogin = document.getElementById("cashLogin");
-const cashPass = document.getElementById("cashPass");
+
 const chefName = document.getElementById("chefName");
 const chefSurname = document.getElementById("chefSurname");
 const chefPhone = document.getElementById("chefPhone");
@@ -187,26 +176,26 @@ const chefAge = document.getElementById("chefAge");
 const chefSalary = document.getElementById("chefSalary");
 const chefLogin = document.getElementById("chefLogin");
 const chefPass = document.getElementById("chefPass");
+
 const loginInput = document.getElementById("login");
 const passwordInput = document.getElementById("password");
+
 const sname = document.getElementById("sname");
 const ssurname = document.getElementById("ssurname");
 const slogin = document.getElementById("slogin");
 const spass = document.getElementById("spass");
-const categoriesEl = document.getElementById("categoriesEl");
-const totalPriceLabel = document.getElementById("totalPriceLabel");
-const sname = document.getElementById("sname");
-const ssurname = document.getElementById("ssurname");
-const slogin = document.getElementById("slogin");
-const loginInput = document.getElementById("login");
-const passwordInput = document.getElementById("password");
+
+const statsEl = document.getElementById("stats");
+const staffInfoEl = document.getElementById("staffInfo");
+const cashierOrdersEl = document.getElementById("cashierOrders");
+const ordersEl = document.getElementById("orders");
 const adminOrdersEl = document.getElementById("adminOrders");
 
 let token = "";
 let role = "";
 let cart = [];
 
-/* ---------------- FIRST ADMIN SETUP ---------------- */
+/* ---------------- ADMIN SETUP ---------------- */
 async function setupAdmin() {
     const res = await fetch(API + "/auth/register", {
         method: "POST",
@@ -220,11 +209,9 @@ async function setupAdmin() {
     });
 
     const data = await res.json();
-    alert(data.msg || "Done");
+    alert(data.msg);
 
-    if (res.ok) {
-        setupBox.style.display = "none";
-    }
+    if (res.ok) setupBox.style.display = "none";
 }
 
 /* ---------------- LOGIN ---------------- */
@@ -240,27 +227,22 @@ async function login() {
 
     const data = await res.json();
 
-    if (!data.token) {
-        alert("Login error");
-        return;
-    }
+    if (!data.token) return alert("Login error");
 
     token = data.token;
     role = data.role;
 
     loginBox.style.display = "none";
 
+    if (role === "cashier") {
+        cashierBox.style.display = "block";
+        loadFoods();
+        loadCashierOrders();
+    }
+
     if (role === "chef") {
-        socket.emit("join-chef");
         chefBox.style.display = "block";
         loadOrders();
-        
-        // Listen for new-order events
-        socket.on("new-order", (data) => {
-            console.log("New order notification:", data);
-            alert(data.msg);
-            loadOrders();
-        });
     }
 
     if (role === "admin") {
@@ -276,54 +258,45 @@ async function loadFoods() {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    const response = await res.json();
-    
-    if (!response.success) {
-        alert("Error: " + response.msg);
-        return;
-    }
+    const data = await res.json();
 
-    const data = response.data || [];
+    const foods = data.data || [];
 
-    // Group foods by category
     const grouped = {};
-    data.forEach(f => {
-        const catId = f.category._id;
-        const catName = f.category.name;
-        if (!grouped[catId]) grouped[catId] = { name: catName, foods: [] };
-        grouped[catId].foods.push(f);
+    foods.forEach(f => {
+        const id = f.category._id;
+        if (!grouped[id]) grouped[id] = { name: f.category.name, foods: [] };
+        grouped[id].foods.push(f);
     });
-    
-    categoriesEl.innerHTML = Object.entries(grouped).map(([catId, cat]) => `
+
+    categoriesEl.innerHTML = Object.entries(grouped).map(([id, cat]) => `
         <div class="card">
             <h4>${cat.name}</h4>
             ${cat.foods.map(f => `
-                <div style="margin:5px; padding:5px; background:#0f172a; border-radius:5px;">
-                    <p style="margin:0;">${f.name} - ${f.price} so'm</p>
-                    <button class="primary" style="padding:5px; font-size:12px;" onclick="addCart('${f._id}','${f.name}',${f.price})">Add</button>
+                <div>
+                    ${f.name} - ${f.price}
+                    <button class="primary" onclick="addCart('${f._id}','${f.name}',${f.price})">Add</button>
                 </div>
             `).join('')}
         </div>
-    `).join("");
+    `).join('');
 }
 
 /* ---------------- CART ---------------- */
 function addCart(id, name, price) {
     let item = cart.find(i => i.foodId === id);
-
     if (item) item.quantity++;
-    else cart.push({ foodId: id, quantity: 1, name, price });
-
+    else cart.push({ foodId: id, name, price, quantity: 1 });
     renderCart();
 }
 
 function renderCart() {
-    cartBox.innerHTML = cart
-        .map(i => `<div>${i.name} x ${i.quantity} = ${i.price * i.quantity} so'm</div>`)
-        .join("");
-    
-    const total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-    totalPriceLabel.innerText = `Total: ${total} so'm`;
+    cartEl.innerHTML = cart.map(i =>
+        `<div>${i.name} x ${i.quantity} = ${i.price * i.quantity}</div>`
+    ).join("");
+
+    const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    totalPriceLabel.innerText = "Total: " + total + " so'm";
 }
 
 /* ---------------- ORDER ---------------- */
@@ -342,38 +315,14 @@ async function sendOrder() {
         })
     });
 
-    const response = await res.json();
-    alert(response.msg);
-    
-    if (response.success) {
+    const data = await res.json();
+    alert(data.msg);
+
+    if (data.success) {
         cart = [];
         renderCart();
         loadCashierOrders();
     }
-}
-
-/* ---------------- CASHIER ORDERS ---------------- */
-async function loadCashierOrders() {
-    const res = await fetch(API + "/orders/cashier", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const response = await res.json();
-    
-    if (!response.success) {
-        console.error("Error: " + response.msg);
-        return;
-    }
-
-    const data = response.data || [];
-
-    cashierOrdersEl.innerHTML = data.map(o => `
-        <div class="card">
-            <h4>Order #${o.orderNumber}</h4>
-            <p>Status: ${o.status}</p>
-            <p>Foods: ${o.foods.map(f => `${f.foodId.name} x ${f.quantity}`).join(', ')}</p>
-        </div>
-    `).join("");
 }
 
 /* ---------------- CHEF ---------------- */
@@ -382,37 +331,26 @@ async function loadOrders() {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    const response = await res.json();
-    
-    if (!response.success) {
-        alert("Error: " + response.msg);
-        return;
-    }
+    const data = await res.json();
 
-    const data = response.data || [];
+    const orders = data.data || [];
 
-    ordersEl.innerHTML = data.map(o => `
+    ordersEl.innerHTML = orders.map(o => `
         <div class="card">
-            <h3>Order #${o.orderNumber}</h3>
-            <p>Status: ${o.status}</p>
-            <p>Foods: ${o.foods.map(f => `${f.foodId.name} x ${f.quantity}`).join(', ')}</p>
+            <h3>#${o.orderNumber}</h3>
+            <p>${o.status}</p>
             <button class="primary" onclick="ready('${o._id}')">Ready</button>
         </div>
-    `).join("");
+    `).join('');
 }
 
 async function ready(id) {
-    const res = await fetch(API + "/orders/" + id + "/ready", {
+    await fetch(API + "/orders/" + id + "/ready", {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    const response = await res.json();
-    alert(response.msg);
-    
-    if (response.success) {
-        loadOrders();
-    }
+    loadOrders();
 }
 
 /* ---------------- ADMIN ---------------- */
@@ -421,14 +359,8 @@ async function loadStats() {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    const response = await res.json();
-    
-    if (!response.success) {
-        alert("Error: " + response.msg);
-        return;
-    }
-
-    statsEl.innerText = JSON.stringify(response.data, null, 2);
+    const data = await res.json();
+    statsEl.innerText = JSON.stringify(data.data, null, 2);
 }
 
 async function loadCategories() {
@@ -436,83 +368,61 @@ async function loadCategories() {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    const response = await res.json();
-    
-    if (!response.success) {
-        alert("Error: " + response.msg);
-        return;
-    }
-    
-    const data = response.data || [];
-    foodCategory.innerHTML = data.map(c => `<option value="${c._id}">${c.name}</option>`).join("");
+    const data = await res.json();
+
+    foodCategory.innerHTML = data.data.map(c =>
+        `<option value="${c._id}">${c.name}</option>`
+    ).join('');
 }
 
 async function createCategory() {
-    const res = await fetch(API + "/categories", {
+    await fetch(API + "/categories", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ name: catName.value })
     });
 
-    const response = await res.json();
-    alert(response.msg);
-    
-    if (response.success) {
-        catName.value = '';
-        loadCategories();
-    }
+    loadCategories();
 }
 
 async function createFood() {
-    const formData = new FormData();
-    formData.append("name", foodName.value);
-    formData.append("price", foodPrice.value);
-    formData.append("category", foodCategory.value);
-    formData.append("image", foodImage.files[0]);
+    const fd = new FormData();
+    fd.append("name", foodName.value);
+    fd.append("price", foodPrice.value);
+    fd.append("category", foodCategory.value);
+    fd.append("image", foodImage.files[0]);
 
-    const res = await fetch(API + "/foods", {
+    await fetch(API + "/foods", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
-        body: formData
+        body: fd
     });
 
-    const response = await res.json();
-    alert(response.msg);
-    
-    if (response.success) {
-        foodName.value = '';
-        foodPrice.value = '';
-        foodImage.value = '';
-    }
+    alert("Food created");
 }
 
 async function createChef() {
-    const res = await fetch(API + "/admin/chef", {
+    await fetch(API + "/admin/chef", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
             name: chefName.value,
             surname: chefSurname.value,
             phone: chefPhone.value,
-            age: parseInt(chefAge.value),
-            salary: parseInt(chefSalary.value),
+            age: chefAge.value,
+            salary: chefSalary.value,
             login: chefLogin.value,
             password: chefPass.value
         })
     });
 
-    const response = await res.json();
-    alert(response.msg);
-    
-    if (response.success) {
-        chefName.value = '';
-        chefSurname.value = '';
-        chefPhone.value = '';
-        chefAge.value = '';
-        chefSalary.value = '';
-        chefLogin.value = '';
-        chefPass.value = '';
-    }
+    alert("Chef created");
 }
 
 async function loadStaff() {
@@ -520,34 +430,25 @@ async function loadStaff() {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    const response = await res.json();
-    
-    if (!response.success) {
-        alert("Error: " + response.msg);
-        return;
-    }
+    const data = await res.json();
 
-    const staffData = response.data || { chefs: [], totalChefs: 0 };
+    const chefs = data.data.chefs;
 
-    staffInfoEl.innerHTML = `
-        <h4>Chefs: ${staffData.totalChefs}</h4>
-        <table style="width:100%; border-collapse:collapse;">
-            <tr style="background:#1e293b;">
-                <th style="border:1px solid #444; padding:8px;">Name</th>
-                <th style="border:1px solid #444; padding:8px;">Phone</th>
-                <th style="border:1px solid #444; padding:8px;">Age</th>
-                <th style="border:1px solid #444; padding:8px;">Salary</th>
-            </tr>
-            ${staffData.chefs.map(c => `
-                <tr>
-                    <td style="border:1px solid #444; padding:8px;">${c.name} ${c.surname || ''}</td>
-                    <td style="border:1px solid #444; padding:8px;">${c.phone || '-'}</td>
-                    <td style="border:1px solid #444; padding:8px;">${c.age || '-'}</td>
-                    <td style="border:1px solid #444; padding:8px;">${c.salary || '-'} so'm</td>
-                </tr>
-            `).join('')}
-        </table>
-    `;
+    staffInfoEl.innerHTML = chefs.map(c =>
+        `<div>${c.name} ${c.surname} - ${c.phone}</div>`
+    ).join('');
+}
+
+async function loadCashierOrders() {
+    const res = await fetch(API + "/orders/cashier", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    cashierOrdersEl.innerHTML = data.data.map(o =>
+        `<div class="card">#${o.orderNumber} - ${o.status}</div>`
+    ).join('');
 }
 
 async function loadAdminOrders() {
@@ -555,25 +456,13 @@ async function loadAdminOrders() {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    const response = await res.json();
-    
-    if (!response.success) {
-        alert("Error: " + response.msg);
-        return;
-    }
+    const data = await res.json();
 
-    const orders = response.data || [];
-    adminOrdersEl.innerHTML = orders.map(order => `
-        <div style="border:1px solid #444; padding:10px; margin:10px 0;">
-            <h4>Order #${order.orderNumber} - ${order.customerName} - ${order.status} - ${order.totalPrice} so'm</h4>
-            <p>Created: ${new Date(order.createdAt).toLocaleString()}</p>
-            <ul>
-                ${order.foods.map(f => `<li>${f.quantity}x ${f.foodId.name} (${f.foodId.category.name})</li>`).join('')}
-            </ul>
-        </div>
-    `).join('');
+    adminOrdersEl.innerHTML = data.data.map(o =>
+        `<div class="card">#${o.orderNumber} - ${o.status}</div>`
+    ).join('');
 }
-</script>
 
+</script>
 </body>
 </html>
