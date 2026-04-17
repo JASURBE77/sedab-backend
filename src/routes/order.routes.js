@@ -20,4 +20,7 @@ router.get("/admin", auth, role("admin"), orderController.getOrdersForAdmin);
 // �👨‍🍳 chef orderni tayyor qiladi
 router.put("/:id/ready", auth, role("chef"), orderController.readyOrder);
 
+// ❌ orderni bekor qiladi
+router.put("/:id/cancel", auth, role("admin", "cashier"), orderController.cancelOrder);
+
 module.exports = router;

@@ -1,5 +1,10 @@
 const Food = require("../models/food.model");
 
+const getImageUrl = (req, filename) => {
+    if (!filename) return null;
+    return `${req.protocol}://${req.get("host")}/uploads/${filename}`;
+};
+
 exports.createFood = async (req, res) => {
     try {
         const { name, price, category } = req.body;
@@ -16,10 +21,13 @@ exports.createFood = async (req, res) => {
             name,
             price: parseFloat(price),
             category,
-            image: req.file?.path || null
+            image: req.file?.filename || null
         });
 
-        res.status(201).json({ success: true, msg: "Food created successfully", food });
+        const responseFood = food.toObject();
+        responseFood.image = getImageUrl(req, food.image);
+
+        res.status(201).json({ success: true, msg: "Food created successfully", food: responseFood });
     } catch (err) {
         res.status(500).json({ success: false, msg: "Server error: " + err.message });
     }
@@ -29,7 +37,13 @@ exports.createFood = async (req, res) => {
 exports.getFoods = async (req, res) => {
     try {
         const foods = await Food.find().populate('category');
-        res.status(200).json({ success: true, msg: "Foods retrieved", data: foods, count: foods.length });
+        const formatted = foods.map((food) => {
+            const obj = food.toObject();
+            obj.image = getImageUrl(req, obj.image);
+            return obj;
+        });
+
+        res.status(200).json({ success: true, msg: "Foods retrieved", data: formatted, count: formatted.length });
     } catch (err) {
         res.status(500).json({ success: false, msg: "Server error: " + err.message });
     }
@@ -67,12 +81,15 @@ exports.updateFood = async (req, res) => {
             name,
             price: parseFloat(price),
             category,
-            image: req.file?.path || undefined
+            image: req.file ? req.file.filename : undefined
         }, { new: true });
 
         if (!food) return res.status(404).json({ success: false, msg: "Food not found" });
 
-        res.status(200).json({ success: true, msg: "Food updated successfully", food });
+        const responseFood = food.toObject();
+        responseFood.image = getImageUrl(req, responseFood.image);
+
+        res.status(200).json({ success: true, msg: "Food updated successfully", food: responseFood });
     } catch (err) {
         res.status(500).json({ success: false, msg: "Server error: " + err.message });
     }

@@ -43,6 +43,8 @@ app.use("/api/admin", require("./src/routes/admin.routes"));
 app.use("/api/foods", require("./src/routes/food.routes"));
 app.use("/api/orders", require("./src/routes/order.routes"));
 app.use("/api/categories", require("./src/routes/category.routes"));
+app.use("/dashboard", require("./src/routes/dashboard.routes"));
+app.use("/api/dashboard", require("./src/routes/dashboard.routes"));
 
 app.get("/", (req, res) => {
     res.json({ msg: "API running 🚀" });
@@ -63,4 +65,4 @@ mongoose.connect(process.env.MONGO_URI)
 console.log(process.env.MONGO_URI);
 
 
-server.listen(6000, () => console.log("Server 6000")); 
+server.listen(8000, () => console.log("Server http://localhost:8000 running...")); 

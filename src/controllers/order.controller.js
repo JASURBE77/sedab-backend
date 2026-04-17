@@ -117,3 +117,19 @@ exports.readyOrder = async (req, res) => {
         res.status(500).json({ success: false, msg: "Server error: " + err.message });
     }
 };
+
+exports.cancelOrder = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const order = await Order.findByIdAndUpdate(id, { status: "cancelled" }, { new: true }).populate({
+            path: 'foods.foodId',
+            populate: { path: 'category' }
+        });
+
+        if (!order) return res.status(404).json({ success: false, msg: "Order not found" });
+
+        res.status(200).json({ success: true, msg: "Order cancelled successfully", order });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: "Server error: " + err.message });
+    }
+};
