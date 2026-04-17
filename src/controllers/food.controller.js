@@ -7,7 +7,7 @@ const getImageUrl = (req, filename) => {
 
 exports.createFood = async (req, res) => {
     try {
-        const { name, price, category } = req.body;
+        const { name, price, category, description, ingredients } = req.body;
 
         if (!name || !price || !category) {
             return res.status(400).json({ success: false, msg: "Name, price, and category required" });
@@ -21,7 +21,9 @@ exports.createFood = async (req, res) => {
             name,
             price: parseFloat(price),
             category,
-            image: req.file?.filename || null
+            image: req.file?.filename || null,
+            description,
+            ingredients: ingredients ? ingredients.split(',').map(i => i.trim()) : []
         });
 
         const responseFood = food.toObject();
@@ -49,6 +51,22 @@ exports.getFoods = async (req, res) => {
     }
 };
 
+// 📋 bitta food
+exports.getFood = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const food = await Food.findById(id).populate('category');
+        if (!food) return res.status(404).json({ success: false, msg: "Food not found" });
+
+        const obj = food.toObject();
+        obj.image = getImageUrl(req, obj.image);
+
+        res.status(200).json({ success: true, msg: "Food retrieved", data: obj });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: "Server error: " + err.message });
+    }
+};
+
 // ❌ delete
 exports.deleteFood = async (req, res) => {
     try {
@@ -67,7 +85,7 @@ exports.deleteFood = async (req, res) => {
 exports.updateFood = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, price, category } = req.body;
+        const { name, price, category, description, ingredients } = req.body;
 
         if (!name || !price || !category) {
             return res.status(400).json({ success: false, msg: "Name, price, and category required" });
@@ -81,7 +99,9 @@ exports.updateFood = async (req, res) => {
             name,
             price: parseFloat(price),
             category,
-            image: req.file ? req.file.filename : undefined
+            image: req.file ? req.file.filename : undefined,
+            description,
+            ingredients: ingredients ? ingredients.split(',').map(i => i.trim()) : undefined
         }, { new: true });
 
         if (!food) return res.status(404).json({ success: false, msg: "Food not found" });

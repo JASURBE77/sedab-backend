@@ -109,6 +109,10 @@ img {
 <div id="adminBox" style="display:none;">
     <h2>👑 Admin</h2>
 
+    <h3>Dashboard</h3>
+    <button onclick="loadDashboard()">Load Dashboard</button>
+    <pre id="dashboard"></pre>
+
     <button onclick="loadStats()">Refresh Stats</button>
     <pre id="stats"></pre>
 
@@ -119,9 +123,16 @@ img {
     <h3>Create Food</h3>
     <input id="foodName" placeholder="Food Name">
     <input id="foodPrice" type="number" placeholder="Price">
+    <input id="foodDescription" placeholder="Description">
+    <input id="foodIngredients" placeholder="Ingredients (comma separated)">
     <select id="foodCategory"></select>
     <input id="foodImage" type="file">
     <button onclick="createFood()">Create</button>
+
+    <h3>Get Food by ID</h3>
+    <input id="foodId" placeholder="Food ID">
+    <button onclick="getFood()">Get Food</button>
+    <div id="singleFood"></div>
 
     <h3>Create Chef</h3>
     <input id="chefName" placeholder="Name">
@@ -147,10 +158,11 @@ img {
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script>
 
-const API = "https://sedab-backend.onrender.com/api";
+const API = "http://localhost:8000/api";
+const FOOD_API = "http://localhost:8000/food";
 
-// 🔥 FIXED SOCKET (production)
-const socket = io("https://sedab-backend.onrender.com");
+// 🔥 LOCAL SOCKET
+const socket = io("http://localhost:8000");
 
 const setupBox = document.getElementById("setupBox");
 const loginBox = document.getElementById("loginBox");
@@ -167,7 +179,11 @@ const foodCategory = document.getElementById("foodCategory");
 const catName = document.getElementById("catName");
 const foodName = document.getElementById("foodName");
 const foodPrice = document.getElementById("foodPrice");
+const foodDescription = document.getElementById("foodDescription");
+const foodIngredients = document.getElementById("foodIngredients");
 const foodImage = document.getElementById("foodImage");
+const foodId = document.getElementById("foodId");
+const singleFood = document.getElementById("singleFood");
 
 const chefName = document.getElementById("chefName");
 const chefSurname = document.getElementById("chefSurname");
@@ -186,6 +202,7 @@ const slogin = document.getElementById("slogin");
 const spass = document.getElementById("spass");
 
 const statsEl = document.getElementById("stats");
+const dashboardEl = document.getElementById("dashboard");
 const staffInfoEl = document.getElementById("staffInfo");
 const cashierOrdersEl = document.getElementById("cashierOrders");
 const ordersEl = document.getElementById("orders");
@@ -254,7 +271,7 @@ async function login() {
 
 /* ---------------- FOODS ---------------- */
 async function loadFoods() {
-    const res = await fetch(API + "/foods", {
+    const res = await fetch(FOOD_API, {
         headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -273,8 +290,11 @@ async function loadFoods() {
         <div class="card">
             <h4>${cat.name}</h4>
             ${cat.foods.map(f => `
-                <div>
-                    ${f.name} - ${f.price}
+                <div class="food">
+                    ${f.image ? `<img src="${f.image}" alt="${f.name}">` : ''}
+                    <strong>${f.name}</strong> - ${f.price} so'm
+                    ${f.description ? `<p>${f.description}</p>` : ''}
+                    ${f.ingredients && f.ingredients.length ? `<p>Ingredients: ${f.ingredients.join(', ')}</p>` : ''}
                     <button class="primary" onclick="addCart('${f._id}','${f.name}',${f.price})">Add</button>
                 </div>
             `).join('')}
@@ -354,6 +374,15 @@ async function ready(id) {
 }
 
 /* ---------------- ADMIN ---------------- */
+async function loadDashboard() {
+    const res = await fetch(API + "/dashboard", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    dashboardEl.innerText = JSON.stringify(data.data, null, 2);
+}
+
 async function loadStats() {
     const res = await fetch(API + "/admin/stats", {
         headers: { Authorization: `Bearer ${token}` }
@@ -392,16 +421,39 @@ async function createFood() {
     const fd = new FormData();
     fd.append("name", foodName.value);
     fd.append("price", foodPrice.value);
+    fd.append("description", foodDescription.value);
+    fd.append("ingredients", foodIngredients.value);
     fd.append("category", foodCategory.value);
     fd.append("image", foodImage.files[0]);
 
-    await fetch(API + "/foods", {
+    await fetch(FOOD_API, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: fd
     });
 
     alert("Food created");
+}
+
+async function getFood() {
+    const res = await fetch(FOOD_API + "/" + foodId.value);
+    const data = await res.json();
+
+    if (data.success) {
+        const f = data.data;
+        singleFood.innerHTML = `
+            <div class="card">
+                ${f.image ? `<img src="${f.image}" alt="${f.name}">` : ''}
+                <h3>${f.name}</h3>
+                <p>Price: ${f.price} so'm</p>
+                ${f.description ? `<p>Description: ${f.description}</p>` : ''}
+                ${f.ingredients && f.ingredients.length ? `<p>Ingredients: ${f.ingredients.join(', ')}</p>` : ''}
+                <p>Category: ${f.category.name}</p>
+            </div>
+        `;
+    } else {
+        singleFood.innerHTML = `<p>Error: ${data.msg}</p>`;
+    }
 }
 
 async function createChef() {

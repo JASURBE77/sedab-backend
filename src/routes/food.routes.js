@@ -10,6 +10,8 @@ router.post("/", auth, role("admin"), upload.single("image"), foodController.cre
 
 router.get("/", foodController.getFoods);
 
+router.get("/:id", foodController.getFood);
+
 router.put("/:id", auth, role("admin"), upload.single("image"), foodController.updateFood);
 
 router.delete("/:id", auth, role("admin"), foodController.deleteFood);

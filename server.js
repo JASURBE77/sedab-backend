@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
 /* ROUTES */
 app.use("/api/auth", require("./src/routes/auth.routes"));
 app.use("/api/admin", require("./src/routes/admin.routes"));
-app.use("/api/foods", require("./src/routes/food.routes"));
+app.use("/api/food", require("./src/routes/food.routes"));
 app.use("/api/orders", require("./src/routes/order.routes"));
 app.use("/api/categories", require("./src/routes/category.routes"));
 app.use("/dashboard", require("./src/routes/dashboard.routes"));
@@ -55,7 +55,7 @@ app.use((req, res) => {
     res.status(404).json({ msg: "Route not found" });
 });
 
-/* DB - MongoDB Atlas (Cloud) */
+/* DB - MongoDB Atlas (Cloud) */ 
 // const mongoUri = process.env.MONGO_URI || "mongodb+srv://user:password@cluster0.mongodb.net/restaurant?retryWrites=true&w=majority";
 
 mongoose.connect(process.env.MONGO_URI)
