@@ -58,12 +58,25 @@ exports.createOrder = async (req, res) => {
 
 exports.getOrders = async (req, res) => {
     try {
-        const orders = await Order.find().populate({
-            path: 'foods.foodId',
-            populate: { path: 'category' }
-        }).sort({ createdAt: -1 });
+        const orders = await Order.find().sort({ createdAt: -1 });
         
-        res.status(200).json({ success: true, msg: "Orders retrieved", data: orders, count: orders.length });
+        // Format orders for display
+        const formattedOrders = orders.map(order => ({
+            orderId: `#${order.orderNumber}`,
+            date: new Date(order.createdAt).toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(',', ','),
+            customerName: order.customerName,
+            location: order.location,
+            amount: `$${order.totalPrice.toFixed(2)}`,
+            status: order.status
+        }));
+        
+        res.status(200).json({ success: true, msg: "Orders retrieved", data: formattedOrders, count: formattedOrders.length });
     } catch (err) {
         res.status(500).json({ success: false, msg: "Server error: " + err.message });
     }
@@ -71,12 +84,25 @@ exports.getOrders = async (req, res) => {
 
 exports.getOrdersForCashier = async (req, res) => {
     try {
-        const orders = await Order.find().populate({
-            path: 'foods.foodId',
-            populate: { path: 'category' }
-        }).sort({ createdAt: -1 });
+        const orders = await Order.find().sort({ createdAt: -1 });
         
-        res.status(200).json({ success: true, msg: "Orders retrieved", data: orders, count: orders.length });
+        // Format orders for display
+        const formattedOrders = orders.map(order => ({
+            orderId: `#${order.orderNumber}`,
+            date: new Date(order.createdAt).toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(',', ','),
+            customerName: order.customerName,
+            location: order.location,
+            amount: `$${order.totalPrice.toFixed(2)}`,
+            status: order.status
+        }));
+        
+        res.status(200).json({ success: true, msg: "Orders retrieved", data: formattedOrders, count: formattedOrders.length });
     } catch (err) {
         res.status(500).json({ success: false, msg: "Server error: " + err.message });
     }
@@ -84,12 +110,25 @@ exports.getOrdersForCashier = async (req, res) => {
 
 exports.getOrdersForAdmin = async (req, res) => {
     try {
-        const orders = await Order.find().populate({
-            path: 'foods.foodId',
-            populate: { path: 'category' }
-        }).sort({ createdAt: -1 });
+        const orders = await Order.find().sort({ createdAt: -1 });
         
-        res.status(200).json({ success: true, msg: "Orders retrieved", data: orders, count: orders.length });
+        // Format orders for display
+        const formattedOrders = orders.map(order => ({
+            orderId: `#${order.orderNumber}`,
+            date: new Date(order.createdAt).toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(',', ','),
+            customerName: order.customerName,
+            location: order.location,
+            amount: `$${order.totalPrice.toFixed(2)}`,
+            status: order.status
+        }));
+        
+        res.status(200).json({ success: true, msg: "Orders retrieved", data: formattedOrders, count: formattedOrders.length });
     } catch (err) {
         res.status(500).json({ success: false, msg: "Server error: " + err.message });
     }

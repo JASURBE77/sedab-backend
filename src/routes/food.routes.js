@@ -6,7 +6,7 @@ const auth = require("../middleware/auth");
 const role = require("../middleware/role");
 const upload = require("../middleware/upload");
 
-router.post("/", auth, role("admin"), upload.single("image"), foodController.createFood);
+router.post("/", upload.single("image"), foodController.createFood);
 
 router.get("/", foodController.getFoods);
 

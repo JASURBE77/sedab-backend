@@ -5,6 +5,10 @@ const orderSchema = new mongoose.Schema({
         type: String,
         default: "Anonymous"
     },
+    location: {
+        type: String,
+        default: "London"
+    },
     foods: [
         {
             foodId: { type: mongoose.Schema.Types.ObjectId, ref: "Food" },
@@ -15,7 +19,7 @@ const orderSchema = new mongoose.Schema({
     orderNumber: Number,
     status: {
         type: String,
-        enum: ["pending", "cooking", "ready", "cancelled"],
+        enum: ["pending", "cooking", "ready", "cancelled", "New Order", "On Delivery", "Delivered", "Cancelled"],
         default: "pending"
     },
     createdAt: {

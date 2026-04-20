@@ -7,6 +7,6 @@ const role = require("../middleware/role");
 
 router.post("/", auth, role("admin"), categoryController.createCategory);
 
-router.get("/", auth, categoryController.getCategories);
+router.get("/", categoryController.getCategories);
 
 module.exports = router;

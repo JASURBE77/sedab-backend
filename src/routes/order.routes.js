@@ -9,7 +9,7 @@ const role = require("../middleware/role");
 router.post("/", orderController.createOrder);
 
 // 👨‍🍳 chef orderlarni ko‘radi
-router.get("/", auth, role("chef"), orderController.getOrders);
+router.get("/",  orderController.getOrders);
 
 // � cashier order statuslarini ko‘radi
 router.get("/cashier", auth, role("cashier"), orderController.getOrdersForCashier);

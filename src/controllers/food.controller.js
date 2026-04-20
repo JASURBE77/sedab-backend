@@ -2,12 +2,17 @@ const Food = require("../models/food.model");
 
 const getImageUrl = (req, filename) => {
     if (!filename) return null;
+    // Agar URL bo'lsa, to'g'ridan-to'g'ri qaytarish
+    if (filename.startsWith('http://') || filename.startsWith('https://')) {
+        return filename;
+    }
+    // Agar filename bo'lsa, path bilan qaytarish
     return `${req.protocol}://${req.get("host")}/uploads/${filename}`;
 };
 
 exports.createFood = async (req, res) => {
     try {
-        const { name, price, category, description, ingredients } = req.body;
+        const { name, price, category, description, ingredients, imageUrl } = req.body;
 
         if (!name || !price || !category) {
             return res.status(400).json({ success: false, msg: "Name, price, and category required" });
@@ -17,11 +22,14 @@ exports.createFood = async (req, res) => {
             return res.status(400).json({ success: false, msg: "Price must be a positive number" });
         }
 
+        // Image: file upload yoki string URL
+        const image = imageUrl || req.file?.filename || null;
+
         const food = await Food.create({
             name,
             price: parseFloat(price),
             category,
-            image: req.file?.filename || null,
+            image,
             description,
             ingredients: ingredients ? ingredients.split(',').map(i => i.trim()) : []
         });
@@ -41,7 +49,12 @@ exports.getFoods = async (req, res) => {
         const foods = await Food.find().populate('category');
         const formatted = foods.map((food) => {
             const obj = food.toObject();
-            obj.image = getImageUrl(req, obj.image);
+            // Agar URL bo'lsa, to'g'ridan-to'g'ri qaytarish
+            if (obj.image && (obj.image.startsWith('http://') || obj.image.startsWith('https://'))) {
+                obj.image = obj.image;
+            } else {
+                obj.image = getImageUrl(req, obj.image);
+            }
             return obj;
         });
 
@@ -59,7 +72,12 @@ exports.getFood = async (req, res) => {
         if (!food) return res.status(404).json({ success: false, msg: "Food not found" });
 
         const obj = food.toObject();
-        obj.image = getImageUrl(req, obj.image);
+        // Agar URL bo'lsa, to'g'ridan-to'g'ri qaytarish
+        if (obj.image && (obj.image.startsWith('http://') || obj.image.startsWith('https://'))) {
+            obj.image = obj.image;
+        } else {
+            obj.image = getImageUrl(req, obj.image);
+        }
 
         res.status(200).json({ success: true, msg: "Food retrieved", data: obj });
     } catch (err) {

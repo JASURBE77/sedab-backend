@@ -1,520 +1,927 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Restaurant System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: #0f172a;
-    color: white;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a202c 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
 
-.container { padding: 20px; }
+        .navbar {
+            background: rgba(30, 41, 59, 0.95);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid #22c55e;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-.card {
-    background: #1e293b;
-    padding: 12px;
-    border-radius: 10px;
-    margin: 10px 0;
-}
+        .navbar h1 {
+            color: #22c55e;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-button {
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
 
-.primary { background: #22c55e; color: white; }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #334155;
+        }
 
-input, select {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 6px;
-    border: none;
-    width: 200px;
-}
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
 
-.grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
+        .tab-btn.active {
+            color: #22c55e;
+            border-bottom-color #22c55e;
+        }
 
-.food {
-    width: 180px;
-}
+        .tab-btn:hover {
+            color: #e2e8f0;
+        }
 
-img {
-    width: 100%;
-    border-radius: 10px;
-}
-</style>
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === ORDERS TABLE === */
+        .table-wrapper {
+            overflow-x: auto;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(34, 197, 94, 0.1);
+            border-bottom: 2px solid #22c55e;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: #22c55e;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #475569;
+            color: #cbd5e1;
+        }
+
+        tbody tr:hover {
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .order-id {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .status-new {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-delivery {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .status-delivered {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-cancelled {
+            background: #6b7280;
+            color: white;
+        }
+
+        /* === FOOD GRID === */
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .food-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .food-card:hover {
+            transform: translateY(-5px);
+            border-color: #22c55e;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+        }
+
+        .food-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+        }
+
+        .food-info {
+            padding: 1.5rem;
+        }
+
+        .food-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 0.5rem;
+        }
+
+        .food-category {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .food-description {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .food-ingredients {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .ingredient-tag {
+            display: inline-block;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            padding: 0.3rem 0.7rem;
+            border-radius: 12px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .food-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #334155;
+        }
+
+        .food-price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #22c55e;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #16a34a;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #22c55e;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #7f1d1d;
+            border: 1px solid #dc2626;
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+        }
+
+        .search-box::placeholder {
+            color: #64748b;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .food-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 1rem;
+            }
+
+            .table-wrapper {
+                padding: 1rem;
+            }
+
+            th, td {
+                padding: 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            .navbar h1 {
+                font-size: 1.4rem;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* === LOGIN MODAL === */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-modal {
+            background: rgba(30, 41, 59, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+        }
+
+        .login-title {
+            color: #22c55e;
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            color: #e2e8f0;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(51, 65, 85, 0.8);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #16a34a;
+            transform: scale(1.02);
+        }
+
+        /* === ADD FOOD MODAL === */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: rgba(30, 41, 59, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+        }
+
+        .modal-title {
+            color: #22c55e;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #e2e8f0;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(51, 65, 85, 0.8);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="container">
-
-<!-- ADMIN SETUP -->
-<div id="setupBox">
-    <h2>🟢 First Admin Setup</h2>
-
-    <input id="sname" placeholder="Name">
-    <input id="ssurname" placeholder="Surname">
-    <input id="slogin" placeholder="Login">
-    <input id="spass" type="password" placeholder="Password">
-
-    <button class="primary" onclick="setupAdmin()">Create Admin</button>
-</div>
-
-<hr>
-
-<!-- LOGIN -->
-<div id="loginBox">
-    <h2>Login</h2>
-
-    <input id="login" placeholder="login">
-    <input id="password" type="password" placeholder="password">
-
-    <button class="primary" onclick="login()">Login</button>
-</div>
-
-<!-- CASHIER -->
-<div id="cashierBox" style="display:none;">
-    <h2>🍔 Cashier</h2>
-
-    <div id="categoriesEl" class="grid"></div>
-
-    <h3>🛒 Cart</h3>
-    <div id="cart"></div>
-    <h3 id="totalPriceLabel">Total: 0 so'm</h3>
-
-    <button class="primary" onclick="sendOrder()">Send Order</button>
-
-    <h3>Orders</h3>
-    <div id="cashierOrders"></div>
-</div>
-
-<!-- CHEF -->
-<div id="chefBox" style="display:none;">
-    <h2>👨‍🍳 Chef</h2>
-    <div id="orders"></div>
-</div>
-
-<!-- ADMIN -->
-<div id="adminBox" style="display:none;">
-    <h2>👑 Admin</h2>
-
-    <h3>Dashboard</h3>
-    <button onclick="loadDashboard()">Load Dashboard</button>
-    <pre id="dashboard"></pre>
-
-    <button onclick="loadStats()">Refresh Stats</button>
-    <pre id="stats"></pre>
-
-    <h3>Create Category</h3>
-    <input id="catName" placeholder="Category Name">
-    <button onclick="createCategory()">Create</button>
-
-    <h3>Create Food</h3>
-    <input id="foodName" placeholder="Food Name">
-    <input id="foodPrice" type="number" placeholder="Price">
-    <input id="foodDescription" placeholder="Description">
-    <input id="foodIngredients" placeholder="Ingredients (comma separated)">
-    <select id="foodCategory"></select>
-    <input id="foodImage" type="file">
-    <button onclick="createFood()">Create</button>
-
-    <h3>Get Food by ID</h3>
-    <input id="foodId" placeholder="Food ID">
-    <button onclick="getFood()">Get Food</button>
-    <div id="singleFood"></div>
-
-    <h3>Create Chef</h3>
-    <input id="chefName" placeholder="Name">
-    <input id="chefSurname" placeholder="Surname">
-    <input id="chefPhone" placeholder="Phone">
-    <input id="chefAge" type="number" placeholder="Age">
-    <input id="chefSalary" type="number" placeholder="Salary">
-    <input id="chefLogin" placeholder="Login">
-    <input id="chefPass" type="password" placeholder="Password">
-    <button onclick="createChef()">Create Chef</button>
-
-    <h3>Staff</h3>
-    <button onclick="loadStaff()">Load Staff</button>
-    <div id="staffInfo"></div>
-
-    <h3>Orders</h3>
-    <button onclick="loadAdminOrders()">Load Orders</button>
-    <div id="adminOrders"></div>
-</div>
-
-</div>
-
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-<script>
-
-const API = "http://localhost:8000/api";
-const FOOD_API = "http://localhost:8000/food";
-
-// 🔥 LOCAL SOCKET
-const socket = io("http://localhost:8000");
-
-const setupBox = document.getElementById("setupBox");
-const loginBox = document.getElementById("loginBox");
-const cashierBox = document.getElementById("cashierBox");
-const chefBox = document.getElementById("chefBox");
-const adminBox = document.getElementById("adminBox");
-
-const categoriesEl = document.getElementById("categoriesEl");
-const cartEl = document.getElementById("cart");
-const totalPriceLabel = document.getElementById("totalPriceLabel");
-
-const foodCategory = document.getElementById("foodCategory");
-
-const catName = document.getElementById("catName");
-const foodName = document.getElementById("foodName");
-const foodPrice = document.getElementById("foodPrice");
-const foodDescription = document.getElementById("foodDescription");
-const foodIngredients = document.getElementById("foodIngredients");
-const foodImage = document.getElementById("foodImage");
-const foodId = document.getElementById("foodId");
-const singleFood = document.getElementById("singleFood");
-
-const chefName = document.getElementById("chefName");
-const chefSurname = document.getElementById("chefSurname");
-const chefPhone = document.getElementById("chefPhone");
-const chefAge = document.getElementById("chefAge");
-const chefSalary = document.getElementById("chefSalary");
-const chefLogin = document.getElementById("chefLogin");
-const chefPass = document.getElementById("chefPass");
-
-const loginInput = document.getElementById("login");
-const passwordInput = document.getElementById("password");
-
-const sname = document.getElementById("sname");
-const ssurname = document.getElementById("ssurname");
-const slogin = document.getElementById("slogin");
-const spass = document.getElementById("spass");
-
-const statsEl = document.getElementById("stats");
-const dashboardEl = document.getElementById("dashboard");
-const staffInfoEl = document.getElementById("staffInfo");
-const cashierOrdersEl = document.getElementById("cashierOrders");
-const ordersEl = document.getElementById("orders");
-const adminOrdersEl = document.getElementById("adminOrders");
-
-let token = "";
-let role = "";
-let cart = [];
-
-/* ---------------- ADMIN SETUP ---------------- */
-async function setupAdmin() {
-    const res = await fetch(API + "/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name: sname.value,
-            surname: ssurname.value,
-            login: slogin.value,
-            password: spass.value
-        })
-    });
-
-    const data = await res.json();
-    alert(data.msg);
-
-    if (res.ok) setupBox.style.display = "none";
-}
-
-/* ---------------- LOGIN ---------------- */
-async function login() {
-    const res = await fetch(API + "/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            login: loginInput.value,
-            password: passwordInput.value
-        })
-    });
-
-    const data = await res.json();
-
-    if (!data.token) return alert("Login error");
-
-    token = data.token;
-    role = data.role;
-
-    loginBox.style.display = "none";
-
-    if (role === "cashier") {
-        cashierBox.style.display = "block";
-        loadFoods();
-        loadCashierOrders();
-    }
-
-    if (role === "chef") {
-        chefBox.style.display = "block";
-        loadOrders();
-    }
-
-    if (role === "admin") {
-        adminBox.style.display = "block";
-        loadStats();
-        loadCategories();
-    }
-}
-
-/* ---------------- FOODS ---------------- */
-async function loadFoods() {
-    const res = await fetch(FOOD_API, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await res.json();
-
-    const foods = data.data || [];
-
-    const grouped = {};
-    foods.forEach(f => {
-        const id = f.category._id;
-        if (!grouped[id]) grouped[id] = { name: f.category.name, foods: [] };
-        grouped[id].foods.push(f);
-    });
-
-    categoriesEl.innerHTML = Object.entries(grouped).map(([id, cat]) => `
-        <div class="card">
-            <h4>${cat.name}</h4>
-            ${cat.foods.map(f => `
-                <div class="food">
-                    ${f.image ? `<img src="${f.image}" alt="${f.name}">` : ''}
-                    <strong>${f.name}</strong> - ${f.price} so'm
-                    ${f.description ? `<p>${f.description}</p>` : ''}
-                    ${f.ingredients && f.ingredients.length ? `<p>Ingredients: ${f.ingredients.join(', ')}</p>` : ''}
-                    <button class="primary" onclick="addCart('${f._id}','${f.name}',${f.price})">Add</button>
+    <!-- Login Modal -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-modal">
+            <h2 class="login-title">🍽️ Restaurant Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Enter username" required>
                 </div>
-            `).join('')}
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
         </div>
-    `).join('');
-}
+    </div>
 
-/* ---------------- CART ---------------- */
-function addCart(id, name, price) {
-    let item = cart.find(i => i.foodId === id);
-    if (item) item.quantity++;
-    else cart.push({ foodId: id, name, price, quantity: 1 });
-    renderCart();
-}
-
-function renderCart() {
-    cartEl.innerHTML = cart.map(i =>
-        `<div>${i.name} x ${i.quantity} = ${i.price * i.quantity}</div>`
-    ).join("");
-
-    const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    totalPriceLabel.innerText = "Total: " + total + " so'm";
-}
-
-/* ---------------- ORDER ---------------- */
-async function sendOrder() {
-    const res = await fetch(API + "/orders", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            foods: cart.map(i => ({
-                foodId: i.foodId,
-                quantity: i.quantity
-            }))
-        })
-    });
-
-    const data = await res.json();
-    alert(data.msg);
-
-    if (data.success) {
-        cart = [];
-        renderCart();
-        loadCashierOrders();
-    }
-}
-
-/* ---------------- CHEF ---------------- */
-async function loadOrders() {
-    const res = await fetch(API + "/orders", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await res.json();
-
-    const orders = data.data || [];
-
-    ordersEl.innerHTML = orders.map(o => `
-        <div class="card">
-            <h3>#${o.orderNumber}</h3>
-            <p>${o.status}</p>
-            <button class="primary" onclick="ready('${o._id}')">Ready</button>
+    <!-- Main Dashboard (hidden initially) -->
+    <div id="dashboard" style="display: none;">
+        <!-- Navbar -->
+        <div class="navbar">
+            <h1>🍽️ Restaurant Management System</h1>
         </div>
-    `).join('');
-}
 
-async function ready(id) {
-    await fetch(API + "/orders/" + id + "/ready", {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    loadOrders();
-}
-
-/* ---------------- ADMIN ---------------- */
-async function loadDashboard() {
-    const res = await fetch(API + "/dashboard", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await res.json();
-    dashboardEl.innerText = JSON.stringify(data.data, null, 2);
-}
-
-async function loadStats() {
-    const res = await fetch(API + "/admin/stats", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await res.json();
-    statsEl.innerText = JSON.stringify(data.data, null, 2);
-}
-
-async function loadCategories() {
-    const res = await fetch(API + "/categories", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await res.json();
-
-    foodCategory.innerHTML = data.data.map(c =>
-        `<option value="${c._id}">${c.name}</option>`
-    ).join('');
-}
-
-async function createCategory() {
-    await fetch(API + "/categories", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ name: catName.value })
-    });
-
-    loadCategories();
-}
-
-async function createFood() {
-    const fd = new FormData();
-    fd.append("name", foodName.value);
-    fd.append("price", foodPrice.value);
-    fd.append("description", foodDescription.value);
-    fd.append("ingredients", foodIngredients.value);
-    fd.append("category", foodCategory.value);
-    fd.append("image", foodImage.files[0]);
-
-    await fetch(FOOD_API, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd
-    });
-
-    alert("Food created");
-}
-
-async function getFood() {
-    const res = await fetch(FOOD_API + "/" + foodId.value);
-    const data = await res.json();
-
-    if (data.success) {
-        const f = data.data;
-        singleFood.innerHTML = `
-            <div class="card">
-                ${f.image ? `<img src="${f.image}" alt="${f.name}">` : ''}
-                <h3>${f.name}</h3>
-                <p>Price: ${f.price} so'm</p>
-                ${f.description ? `<p>Description: ${f.description}</p>` : ''}
-                ${f.ingredients && f.ingredients.length ? `<p>Ingredients: ${f.ingredients.join(', ')}</p>` : ''}
-                <p>Category: ${f.category.name}</p>
+        <!-- Main Container -->
+        <div class="container">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('orders')">📋 Orders</button>
+                <button class="tab-btn" onclick="switchTab('foods')">🍕 Foods</button>
+                <button class="tab-btn" onclick="switchTab('stats')">📊 Statistics</button>
             </div>
-        `;
-    } else {
-        singleFood.innerHTML = `<p>Error: ${data.msg}</p>`;
-    }
-}
 
-async function createChef() {
-    await fetch(API + "/admin/chef", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            name: chefName.value,
-            surname: chefSurname.value,
-            phone: chefPhone.value,
-            age: chefAge.value,
-            salary: chefSalary.value,
-            login: chefLogin.value,
-            password: chefPass.value
-        })
-    });
+        <!-- === ORDERS TAB === -->
+        <div id="orders" class="tab-content active">
+            <div class="controls">
+                <input type="text" id="orderSearch" class="search-box" placeholder="🔍 Search by Order ID or Customer Name...">
+                <button class="btn btn-secondary" onclick="loadOrders()">🔄 Refresh</button>
+            </div>
+            <div class="table-wrapper">
+                <div id="ordersLoading" class="loading" style="display: none;">Loading orders...</div>
+                <div id="ordersError" class="error" style="display: none;"></div>
+                <table id="ordersTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Customer Name</th>
+                            <th>Location</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody"></tbody>
+                </table>
+                <div id="ordersEmpty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📭</div>
+                    <p>No orders found</p>
+                </div>
+            </div>
+        </div>
 
-    alert("Chef created");
-}
+        <!-- === FOODS TAB === -->
+        <div id="foods" class="tab-content">
+            <div class="controls">
+                <input type="text" id="foodSearch" class="search-box" placeholder="🔍 Search by food name...">
+                <button class="btn btn-secondary" onclick="loadFoods()">🔄 Refresh</button>
+                <button class="btn btn-primary" onclick="openAddFoodModal()">➕ Add Food</button>
+            </div>
+            <div id="foodsLoading" class="loading" style="display: none;">Loading foods...</div>
+            <div id="foodsError" class="error" style="display: none;"></div>
+            <div class="food-grid" id="foodsGrid"></div>
+            <div id="foodsEmpty" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">🚫</div>
+                <p>No foods found</p>
+            </div>
+        </div>
 
-async function loadStaff() {
-    const res = await fetch(API + "/admin/staff", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+        <!-- === STATISTICS TAB === -->
+        <div id="stats" class="tab-content">
+            <div style="background: rgba(30, 41, 59, 0.8); padding: 2rem; border-radius: 12px; border: 1px solid #334155;">
+                <h2 style="color: #22c55e; margin-bottom: 1.5rem;">📊 Statistics</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <div style="color: #94a3b8; font-size: 0.9rem;">Total Orders</div>
+                        <div id="totalOrders" style="font-size: 2.5rem; color: #22c55e; font-weight: bold;">0</div>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <div style="color: #94a3b8; font-size: 0.9rem;">Total Foods</div>
+                        <div id="totalFoods" style="font-size: 2.5rem; color: #22c55e; font-weight: bold;">0</div>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <div style="color: #94a3b8; font-size: 0.9rem;">New Orders</div>
+                        <div id="newOrders" style="font-size: 2.5rem; color: #f59e0b; font-weight: bold;">0</div>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <div style="color: #94a3b8; font-size: 0.9rem;">On Delivery</div>
+                        <div id="onDeliveryOrders" style="font-size: 2.5rem; color: #f59e0b; font-weight: bold;">0</div>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <div style="color: #94a3b8; font-size: 0.9rem;">Delivered</div>
+                        <div id="deliveredOrders" style="font-size: 2.5rem; color: #22c55e; font-weight: bold;">0</div>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <div style="color: #94a3b8; font-size: 0.9rem;">Avg Order Value</div>
+                        <div id="avgOrderValue" style="font-size: 2.5rem; color: #22c55e; font-weight: bold;">$0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    const data = await res.json();
+    <!-- Add Food Modal -->
+    <div id="addFoodModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <button class="modal-close" onclick="closeAddFoodModal()">×</button>
+            <h2 class="modal-title">➕ Add New Food</h2>
+            <form id="addFoodForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="foodName">Food Name *</label>
+                        <input type="text" id="foodName" class="form-input" placeholder="Enter food name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="foodPrice">Price *</label>
+                        <input type="number" id="foodPrice" class="form-input" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="foodCategory">Category *</label>
+                    <select id="foodCategory" class="form-input" required>
+                        <option value="">Select a category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="foodImage">Image URL</label>
+                    <input type="url" id="foodImage" class="form-input" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="foodDescription">Description</label>
+                    <textarea id="foodDescription" class="form-textarea" placeholder="Enter food description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="foodIngredients">Ingredients (comma-separated)</label>
+                    <input type="text" id="foodIngredients" class="form-input" placeholder="Tomato, Cheese, Basil">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Add Food</button>
+            </form>
+        </div>
+    </div>
 
-    const chefs = data.data.chefs;
+    <script>
+        const API_BASE = 'http://localhost:8001/api';
 
-    staffInfoEl.innerHTML = chefs.map(c =>
-        `<div>${c.name} ${c.surname} - ${c.phone}</div>`
-    ).join('');
-}
+        // === LOGIN HANDLING ===
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Simple demo login (any username/password works)
+            if (username && password) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadOrders(); // Load initial data
+            } else {
+                alert('Please enter username and password');
+            }
+        });
 
-async function loadCashierOrders() {
-    const res = await fetch(API + "/orders/cashier", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+        // === TAB SWITCHING ===
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
 
-    const data = await res.json();
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
 
-    cashierOrdersEl.innerHTML = data.data.map(o =>
-        `<div class="card">#${o.orderNumber} - ${o.status}</div>`
-    ).join('');
-}
+            // Load data if needed
+            if (tabName === 'orders') {
+                loadOrders();
+            } else if (tabName === 'foods') {
+                loadFoods();
+            } else if (tabName === 'stats') {
+                loadStats();
+            }
+        }
 
-async function loadAdminOrders() {
-    const res = await fetch(API + "/orders/admin", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+        // === LOAD ORDERS ===
+        async function loadOrders() {
+            const loader = document.getElementById('ordersLoading');
+            const table = document.getElementById('ordersTable');
+            const tbody = document.getElementById('ordersBody');
+            const error = document.getElementById('ordersError');
+            const empty = document.getElementById('ordersEmpty');
 
-    const data = await res.json();
+            loader.style.display = 'block';
+            error.style.display = 'none';
+            table.style.display = 'none';
+            empty.style.display = 'none';
 
-    adminOrdersEl.innerHTML = data.data.map(o =>
-        `<div class="card">#${o.orderNumber} - ${o.status}</div>`
-    ).join('');
-}
+            try {
+                const response = await fetch(`${API_BASE}/orders`);
+                const result = await response.json();
 
-</script>
+                if (result.success && result.data) {
+                    tbody.innerHTML = '';
+                    result.data.forEach(order => {
+                        const statusClass = `status-${order.status.toLowerCase().replace(/\s+/g, '-')}`;
+                        tbody.innerHTML += `
+                            <tr>
+                                <td class="order-id">${order.orderId}</td>
+                                <td>${order.date}</td>
+                                <td>${order.customerName}</td>
+                                <td>${order.location}</td>
+                                <td>${order.amount}</td>
+                                <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                    table.style.display = 'table';
+                } else {
+                    empty.style.display = 'block';
+                }
+            } catch (err) {
+                error.style.display = 'block';
+                error.innerHTML = `❌ Error loading orders: ${err.message}`;
+            }
+
+            loader.style.display = 'none';
+        }
+
+        // === LOAD FOODS ===
+        async function loadFoods() {
+            const loader = document.getElementById('foodsLoading');
+            const grid = document.getElementById('foodsGrid');
+            const error = document.getElementById('foodsError');
+            const empty = document.getElementById('foodsEmpty');
+
+            loader.style.display = 'block';
+            error.style.display = 'none';
+            grid.innerHTML = '';
+            empty.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/food`);
+                const result = await response.json();
+
+                if (result.success && result.data && result.data.length > 0) {
+                    result.data.forEach(food => {
+                        const ingredientsList = food.ingredients
+                            .map(ing => `<span class="ingredient-tag">${ing}</span>`)
+                            .join('');
+
+                        grid.innerHTML += `
+                            <div class="food-card">
+                                <img src="${food.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzMzNDE1NSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjOTRhM2I4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='}" alt="${food.name}" class="food-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzMzNDE1NSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjOTRhM2I4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='">
+                                <div class="food-info">
+                                    <div class="food-name">${food.name}</div>
+                                    <div class="food-category">${food.category.name}</div>
+                                    <div class="food-description">${food.description}</div>
+                                    <div class="food-ingredients">${ingredientsList}</div>
+                                    <div class="food-footer">
+                                        <span class="food-price">${food.price} so'm</span>
+                                        <button class="btn btn-primary" onclick="addToCart('${food._id}', '${food.name}')">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    empty.style.display = 'block';
+                }
+            } catch (err) {
+                error.style.display = 'block';
+                error.innerHTML = `❌ Error loading foods: ${err.message}`;
+            }
+
+            loader.style.display = 'none';
+        }
+
+        // === LOAD STATISTICS ===
+        async function loadStats() {
+            try {
+                const ordersRes = await fetch(`${API_BASE}/orders`);
+                const ordersData = await ordersRes.json();
+                const foodsRes = await fetch(`${API_BASE}/food`);
+                const foodsData = await foodsRes.json();
+
+                if (ordersData.success && foodsData.success) {
+                    const orders = ordersData.data || [];
+                    const foods = foodsData.data || [];
+
+                    const newOrders = orders.filter(o => o.status === 'New Order').length;
+                    const onDelivery = orders.filter(o => o.status === 'On Delivery').length;
+                    const delivered = orders.filter(o => o.status === 'Delivered').length;
+                    const avgValue = orders.length > 0 
+                        ? (orders.reduce((sum, o) => sum + parseFloat(o.amount.replace('$', '')), 0) / orders.length).toFixed(2)
+                        : 0;
+
+                    document.getElementById('totalOrders').textContent = orders.length;
+                    document.getElementById('totalFoods').textContent = foods.length;
+                    document.getElementById('newOrders').textContent = newOrders;
+                    document.getElementById('onDeliveryOrders').textContent = onDelivery;
+                    document.getElementById('deliveredOrders').textContent = delivered;
+                    document.getElementById('avgOrderValue').textContent = `$${avgValue}`;
+                }
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        // === ADD FOOD MODAL ===
+        function openAddFoodModal() {
+            document.getElementById('addFoodModal').style.display = 'flex';
+            loadCategoriesForForm();
+        }
+
+        function closeAddFoodModal() {
+            document.getElementById('addFoodModal').style.display = 'none';
+            document.getElementById('addFoodForm').reset();
+        }
+
+        // Load categories for the form
+        async function loadCategoriesForForm() {
+            try {
+                const response = await fetch(`${API_BASE}/categories`);
+                const result = await response.json();
+                
+                const select = document.getElementById('foodCategory');
+                select.innerHTML = '<option value="">Select a category</option>';
+                
+                if (result.success && result.data) {
+                    result.data.forEach(category => {
+                        select.innerHTML += `<option value="${category._id}">${category.name}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading categories:', err);
+            }
+        }
+
+        // Handle add food form submission
+        document.getElementById('addFoodForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('foodName').value,
+                price: document.getElementById('foodPrice').value,
+                category: document.getElementById('foodCategory').value,
+                imageUrl: document.getElementById('foodImage').value,
+                description: document.getElementById('foodDescription').value,
+                ingredients: document.getElementById('foodIngredients').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/food`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Food added successfully!');
+                    closeAddFoodModal();
+                    loadFoods(); // Refresh the foods list
+                } else {
+                    alert('Error adding food: ' + result.msg);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        // === INITIAL LOAD ===
+        // Removed DOMContentLoaded listener since login is shown first
+
+        // === SEARCH FILTERS ===
+        document.addEventListener('DOMContentLoaded', () => {
+            const orderSearch = document.getElementById('orderSearch');
+            if (orderSearch) {
+                orderSearch.addEventListener('keyup', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    document.querySelectorAll('#ordersTable tbody tr').forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        row.style.display = text.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+            }
+
+            const foodSearch = document.getElementById('foodSearch');
+            if (foodSearch) {
+                foodSearch.addEventListener('keyup', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    document.querySelectorAll('.food-card').forEach(card => {
+                        const name = card.querySelector('.food-name').innerText.toLowerCase();
+                        card.style.display = name.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>

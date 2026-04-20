@@ -7,7 +7,7 @@ const foodSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category"
     },
-    image: String, // rasm path
+    image: String, // rasm path yoki URL
     description: String,
     ingredients: [String] // ingredientlar ro'yxati
 });
