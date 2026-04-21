@@ -1,26 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
-const orderController = require("../controllers/order.controller");
-const auth = require("../middleware/auth");
-const role = require("../middleware/role");
+const ctrl = require("../controllers/order.controller");
 
-// 💵 user order yaratadi
-router.post("/", orderController.createOrder);
+router.post("/", ctrl.createOrder);
+router.get("/", ctrl.getOrders);
+router.get("/chef", ctrl.getOrdersForChef);
+router.get("/cashier", ctrl.getOrdersForCashier);
+router.get("/admin", ctrl.getOrdersForAdmin);
+router.get("/:id", ctrl.getOrderById);
 
-// 👨‍🍳 chef orderlarni ko‘radi
-router.get("/",  orderController.getOrders);
-
-// � cashier order statuslarini ko‘radi
-router.get("/cashier", auth, role("cashier"), orderController.getOrdersForCashier);
-
-// 👑 admin orderlarni ko‘radi
-router.get("/admin", auth, role("admin"), orderController.getOrdersForAdmin);
-
-// �👨‍🍳 chef orderni tayyor qiladi
-router.put("/:id/ready", auth, role("chef"), orderController.readyOrder);
-
-// ❌ orderni bekor qiladi
-router.put("/:id/cancel", auth, role("admin", "cashier"), orderController.cancelOrder);
+router.put("/:id/cooking", ctrl.cookingOrder);
+router.put("/:id/ready", ctrl.readyOrder);
+router.put("/:id/deliver", ctrl.deliverOrder);
+router.put("/:id/status", ctrl.updateOrderStatus);
+router.put("/:id/cancel", ctrl.cancelOrder);
 
 module.exports = router;

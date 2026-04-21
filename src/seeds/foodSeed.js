@@ -5,7 +5,8 @@ require("dotenv").config({ path: require("path").join(__dirname, "../../.env") }
 
 const seedFoods = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI);
+        await mon
+        goose.connect(process.env.MONGO_URI);
         console.log("✅ MongoDB connected");
 
         // Delete all existing foods
@@ -23,6 +24,10 @@ const seedFoods = async () => {
                 { name: "Ichimlik", description: "Turli ichimliklar" },
                 { name: "Shirinlik", description: "Desert va shirinliklar" }
             ];
+
+
+
+            
             categories = await Category.insertMany(defaultCategories);
             console.log(`✅ Yangi ${categories.length} ta kategoriya yaratildi`);
         }

@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const ctrl = require("../controllers/chat.controller");
 
-const ctrl = require("../controllers/chef.controller");
-
-router.get("/me", ctrl.getProfile);
+router.get("/", ctrl.getMessages);
 
 module.exports = router;

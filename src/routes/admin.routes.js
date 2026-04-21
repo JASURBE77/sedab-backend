@@ -1,23 +1,23 @@
 const express = require("express");
 const router = express.Router();
 
-const adminController = require("../controllers/admin.controller");
-const auth = require("../middleware/auth");
-const role = require("../middleware/role");
+const ctrl = require("../controllers/admin.controller");
 
-// admin yaratish
-router.post("/", adminController.createAdmin);
+router.post("/", ctrl.createAdmin);
+router.post("/seed", ctrl.seedData);
+router.get("/stats", ctrl.getStats);
+router.get("/staff", ctrl.getStaff);
 
-// chef yaratish
-router.post("/chef", auth, role("admin"), adminController.createChef);
+/* ---- CHEF ---- */
+router.post("/chef", ctrl.createChef);
+router.get("/chefs", ctrl.getChefs);
+router.put("/chef/:id", ctrl.updateChef);
+router.delete("/chef/:id", ctrl.deleteChef);
 
-// seed data
-router.post("/seed", auth, role("admin"), adminController.seedData);
-
-// statistika
-router.get("/stats", auth, role("admin"), adminController.getStats);
-
-// staff ma'lumotlari
-router.get("/staff", auth, role("admin"), adminController.getStaff);
+/* ---- CASHIER ---- */
+router.post("/cashier", ctrl.createCashier);
+router.get("/cashiers", ctrl.getCashiers);
+router.put("/cashier/:id", ctrl.updateCashier);
+router.delete("/cashier/:id", ctrl.deleteCashier);
 
 module.exports = router;

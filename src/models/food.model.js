@@ -7,9 +7,12 @@ const foodSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category"
     },
-    image: String, // rasm path yoki URL
+    subcategory: { type: String, default: "" },
+    image: String,
     description: String,
-    ingredients: [String] // ingredientlar ro'yxati
+    ingredients: [String],
+    nutritionInfo: { type: String, default: "" },
+    stockAvailable: { type: Boolean, default: true }
 });
 
 module.exports = mongoose.model("Food", foodSchema);
