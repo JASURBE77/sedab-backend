@@ -8,7 +8,7 @@ const options = {
             version: "2.0.0",
             description: "Restaurant boshqaruv tizimi uchun API dokumentatsiya",
         },
-        servers: [{ url: "http://localhost:8001" }],
+        servers: [{ url: "/" }],
         components: {
             securitySchemes: {
                 bearerAuth: {

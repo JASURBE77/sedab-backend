@@ -21,7 +21,13 @@ app.set("io", io);
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: { url: "/docs/swagger.json" }
+}));
+app.get("/docs/swagger.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+});
 
 /* ── SOCKET.IO ─────────────────────────────────────────────────── */
 io.on("connection", (socket) => {
@@ -61,7 +67,6 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => console.log("Disconnected:", socket.id));
 });
 
-/* ── ROUTES ────────────────────────────────────────────────────── */
 const dashboardRoutes = require("./src/routes/dashboard.routes");
 
 app.use("/api/auth",        require("./src/routes/auth.routes"));
