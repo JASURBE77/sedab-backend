@@ -5,6 +5,8 @@ const cors = require("cors");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./src/swagger");
 const Message = require("./src/models/message.model");
 
 const app = express();
@@ -19,6 +21,7 @@ app.set("io", io);
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /* ── SOCKET.IO ─────────────────────────────────────────────────── */
 io.on("connection", (socket) => {

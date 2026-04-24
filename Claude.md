@@ -55,6 +55,21 @@ Rollar: **admin**, **chef**, **cashier**.
 
 ---
 
+### 2. Swagger API Dokumentatsiya
+**Sana:** 2026-04-24
+
+Parolsiz, ochiq Swagger UI qo'shildi.
+
+**URL:** `http://localhost:8001/api-docs`
+
+**O'rnatilgan paketlar:** `swagger-ui-express`, `swagger-jsdoc`
+
+**O'zgartirilgan fayllar:**
+- `src/swagger.js` — yangi fayl, barcha endpointlar tavsifi
+- `server.js` — `/api-docs` route ulandi
+
+---
+
 ## API umumiy struktura
 
 ```
