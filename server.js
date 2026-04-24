@@ -24,11 +24,15 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
-    socket.on("join-chef",    () => socket.join("chefs"));
-    socket.on("join-cashier", () => socket.join("cashiers"));
-    socket.on("join-admin",   () => socket.join("admins"));
+    socket.on("join-chef",     () => socket.join("chefs"));
+    socket.on("join-cashier",  () => socket.join("cashiers"));
+    socket.on("join-admin",    () => socket.join("admins"));
+    socket.on("join-kitchen",  () => { socket.join("kitchen");  console.log(`${socket.id} → kitchen`); });
+    socket.on("join-delivery", () => { socket.join("delivery"); console.log(`${socket.id} → delivery`); });
+    socket.on("join-support",  () => { socket.join("support");  console.log(`${socket.id} → support`); });
+    socket.on("join-general",  () => { socket.join("general");  console.log(`${socket.id} → general`); });
 
-    // Chat: xonaga qo'shilish
+    // Chat: xonaga qo'shilish (universal)
     socket.on("join-room", (room) => {
         socket.join(room);
         console.log(`${socket.id} joined room: ${room}`);

@@ -27,6 +27,86 @@ exports.createAdmin = async (req, res) => {
     }
 };
 
+exports.getMe = async (req, res) => {
+    try {
+        const { id, role } = req.user;
+
+        let user;
+        if (role === "admin") {
+            user = await Admin.findById(id).select("-password");
+        } else if (role === "chef") {
+            user = await Chef.findById(id).select("-password");
+        } else if (role === "cashier") {
+            user = await Cashier.findById(id).select("-password");
+        }
+
+        if (!user) return res.status(404).json({ success: false, msg: "User not found" });
+
+        res.status(200).json({ success: true, user });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: "Server error: " + err.message });
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const { id, role } = req.user;
+        const { fullname, email, phone, location } = req.body;
+
+        const update = {};
+        if (fullname !== undefined) update.fullname = fullname;
+        if (email    !== undefined) update.email    = email;
+        if (phone    !== undefined) update.phone    = phone;
+        if (location !== undefined) update.location = location;
+
+        let Model;
+        if (role === "admin")   Model = Admin;
+        else if (role === "chef")    Model = Chef;
+        else if (role === "cashier") Model = Cashier;
+        else return res.status(400).json({ success: false, msg: "Unknown role" });
+
+        const user = await Model.findByIdAndUpdate(id, update, { new: true }).select("-password");
+        if (!user) return res.status(404).json({ success: false, msg: "User not found" });
+
+        res.json({ success: true, msg: "Profile updated", user });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: "Server error: " + err.message });
+    }
+};
+
+exports.updatePassword = async (req, res) => {
+    try {
+        const { id, role } = req.user;
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, msg: "currentPassword and newPassword required" });
+        }
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, msg: "New password must be at least 6 characters" });
+        }
+
+        let Model;
+        if (role === "admin")        Model = Admin;
+        else if (role === "chef")    Model = Chef;
+        else if (role === "cashier") Model = Cashier;
+        else return res.status(400).json({ success: false, msg: "Unknown role" });
+
+        const user = await Model.findById(id);
+        if (!user) return res.status(404).json({ success: false, msg: "User not found" });
+
+        const ok = await bcrypt.compare(currentPassword, user.password);
+        if (!ok) return res.status(400).json({ success: false, msg: "Current password is wrong" });
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.json({ success: true, msg: "Password updated successfully" });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: "Server error: " + err.message });
+    }
+};
+
 exports.login = async (req, res) => {
     try {
         const { login, password } = req.body;

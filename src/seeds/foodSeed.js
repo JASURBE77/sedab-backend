@@ -20,14 +20,14 @@ const seedFoods = async () => {
             const defaultCategories = [
                 { name: "Lavash", description: "Qo'shni lavashlar" },
                 { name: "Osh", description: "O'zbek oshi" },
-                { name: "Chop", description: "Chop va go'shtlar" },
+                { name: "Chop", description: "Chop va go'shtlar" },-
                 { name: "Ichimlik", description: "Turli ichimliklar" },
                 { name: "Shirinlik", description: "Desert va shirinliklar" }
             ];
+--
 
 
 
-            
             categories = await Category.insertMany(defaultCategories);
             console.log(`✅ Yangi ${categories.length} ta kategoriya yaratildi`);
         }

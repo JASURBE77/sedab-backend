@@ -3,9 +3,12 @@ const mongoose = require("mongoose");
 const chefSchema = new mongoose.Schema({
     name: String,
     surname: String,
+    fullname: { type: String, default: "" },
+    email: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    location: { type: String, default: "" },
     login: { type: String, unique: true },
     password: String,
-    phone: String,
     age: Number,
     salary: Number,
     role: {

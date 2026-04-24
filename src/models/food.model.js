@@ -8,8 +8,8 @@ const foodSchema = new mongoose.Schema({
         ref: "Category"
     },
     subcategory: { type: String, default: "" },
-    image: String,
-    description: String,
+    image: { type: String, default: "" , required: true },
+    description: { type: String, default: ""  , required: true },
     ingredients: [String],
     nutritionInfo: { type: String, default: "" },
     stockAvailable: { type: Boolean, default: true }
