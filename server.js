@@ -85,6 +85,22 @@ app.use("/api/dashboard",   dashboardRoutes);
 app.use("/api/Dashboard",   dashboardRoutes);
 
 app.get("/", (req, res) => res.json({ msg: "Restaurant + Sedap API v2.0", port: 8001 }));
+
+/* ── SEED endpoint (faqat SEED_SECRET header bilan) ───────────── */
+app.post("/api/seed", async (req, res) => {
+    const secret = process.env.SEED_SECRET;
+    if (!secret || req.headers["x-seed-key"] !== secret) {
+        return res.status(403).json({ success: false, msg: "Forbidden" });
+    }
+    try {
+        const runSeed = require("./src/seeds/fullSeed_fn");
+        const result  = await runSeed();
+        res.json({ success: true, ...result });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: err.message });
+    }
+});
+
 app.use((req, res) => res.status(404).json({ msg: "Route not found" }));
 
 mongoose
