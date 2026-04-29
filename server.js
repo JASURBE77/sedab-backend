@@ -86,12 +86,8 @@ app.use("/api/Dashboard",   dashboardRoutes);
 
 app.get("/", (req, res) => res.json({ msg: "Restaurant + Sedap API v2.0", port: 8001 }));
 
-/* ── SEED endpoint (faqat SEED_SECRET header bilan) ───────────── */
+/* ── SEED endpoint ─────────────────────────────────────────────── */
 app.post("/api/seed", async (req, res) => {
-    const secret = process.env.SEED_SECRET;
-    if (!secret || req.headers["x-seed-key"] !== secret) {
-        return res.status(403).json({ success: false, msg: "Forbidden" });
-    }
     try {
         const runSeed = require("./src/seeds/fullSeed_fn");
         const result  = await runSeed();
